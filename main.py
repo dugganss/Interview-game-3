@@ -24,8 +24,12 @@ finishs = pygame.sprite.Group()
 # CLOCK
 clock = pygame.time.Clock()
 
-
+#GAME PROCEDURE
 def game():
+
+    #READING LAYOUT MAP DEFINED IN settings.py
+    #- Depending on the character given in the 2D array, 'LAYOUT', an instance of a particular class be it a player or a wall
+    #  will be created so that I can build a level easily
     for col in range(20):
         for row in range(34):
             if LAYOUT[row][col] == 1:
@@ -155,25 +159,29 @@ def game():
                 finish.rect.x = col * grid_size
                 finish.rect.y = row * grid_size
                 finishs.add(finish)
-    # ~COLOURS~#
+
+    #VARIABLES#
+
+    #INTEGER VARIABLES
 
     stars_collected = 0
     dots_collected = 0
+    directionCheck = 4
 
     BLACK = (0, 0, 0)
 
-    directionCheck = 4
+    #BOOLEAN VARIABLES
 
     MOVING = False
     LEFT = False
     RIGHT = False
     UP = False
     DOWN = False
-
     show_particles = False
-
     zooming = False
     boost = False
+
+    #LISTS
 
     particles = []
     zoom = []
@@ -181,10 +189,12 @@ def game():
     # ~~~~~~GAME LOOP~~~~~~#
     run = True
     while run:
+        #Pygame event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.KEYDOWN:
+                #Checking for movement inputs as an event so that only one input can be entered at any 1 time
                 if MOVING == False:
                     if event.key == pygame.K_LEFT:
                         LEFT = True
@@ -198,7 +208,11 @@ def game():
                     elif event.key == pygame.K_DOWN:
                         DOWN = True
                         MOVING = True
+
+
         # ~~~~~~GAME LOGIC~~~~~~#
+
+        #Updating visual states of objects (idle animations)
 
         for x in range(len(dots)):
             dots.sprites()[x].update()
@@ -206,6 +220,12 @@ def game():
             stars.sprites()[x].update()
         for x in range(len(finishs)):
             finishs.sprites()[x].update()
+
+        #Checking orientation of the player when still using the directionCheck variable
+        # 0 = Right facing
+        # 1 = left facing
+        # 2 = Up facing
+        # 3 = Down facing
 
         if MOVING == False:
             player.reset()
@@ -221,6 +241,11 @@ def game():
             elif directionCheck == 4:
                 player.idle()
 
+        #Locates the player when they are not on screen
+        #~ For instance if there was a level when the player is starts off the screen boundaries, all sprites except from the player sprite will move until
+        #  the player sprite is within a defined boundary
+
+        #This is for downwards
         if player.rect.y > 550:
             player.rect.y -= 15
             for x in range(len(walls)):
@@ -232,40 +257,47 @@ def game():
             for x in range(len(finishs)):
                 finishs.sprites()[x].rect.y -= 15
 
+        #This is for upwards
         if player.rect.y < 150:
             player.rect.y += 15
             for x in range(len(walls)):
-                walls.sprites()[x].rect.y += 15
+                walls.sprites()[x].moveDown()
             for x in range(len(dots)):
-                dots.sprites()[x].rect.y += 15
+                dots.sprites()[x].moveDown()
             for x in range(len(stars)):
-                stars.sprites()[x].rect.y += 15
+                stars.sprites()[x].moveDown()
             for x in range(len(finishs)):
-                finishs.sprites()[x].rect.y += 15
+                finishs.sprites()[x].moveDown()
 
+        #This is for right
         if player.rect.x > 700:
             player.rect.x -= 15
             for x in range(len(walls)):
-                walls.sprites()[x].rect.x -= 15
+                walls.sprites()[x].moveLeft()
             for x in range(len(dots)):
-                dots.sprites()[x].rect.x -= 15
+                dots.sprites()[x].moveLeft()
             for x in range(len(stars)):
-                stars.sprites()[x].rect.x -= 15
+                stars.sprites()[x].moveLeft()
             for x in range(len(finishs)):
-                finishs.sprites()[x].rect.x -= 15
+                finishs.sprites()[x].moveLeft()
 
+        #This is for left
         if player.rect.x < 100:
             player.rect.x += 15
             for x in range(len(walls)):
-                walls.sprites()[x].rect.x += 15
+                walls.sprites()[x].moveRight()
             for x in range(len(dots)):
-                dots.sprites()[x].rect.x += 15
+                dots.sprites()[x].moveRight()
             for x in range(len(stars)):
-                stars.sprites()[x].rect.x += 15
+                stars.sprites()[x].moveRight()
             for x in range(len(finishs)):
-                finishs.sprites()[x].rect.x += 15
+                finishs.sprites()[x].moveRight()
 
-        player_Collide = pygame.sprite.groupcollide(players, walls, False, False)
+        # The code below is for player movement
+        # ~ The boolean values for UP, RIGHT, LEFT and DOWN are all defined before the game loop and are given a positive value when their respective
+        #   key has been pressed. otherwise they are false
+        # ~ It also checks for whether the player has moved outside of the screen boundaries but differs from the other code that checks if the player has moved off screen
+        #   in the way that it moves along with the player. The other check moves absent of the player movement
 
         if LEFT == True:
             zooming = True
@@ -355,18 +387,33 @@ def game():
                     finishs.sprites()[x].moveUp()
                 boost = True
 
+        #COLLSIONS#
+
+        # ~ The code below checks if a dot has collided with a player. If so, the dot will be killed and the dots_collected variable will
+        #   be incremented
+
         dot_Collide = pygame.sprite.groupcollide(players, dots, False, True)
         if dot_Collide:
             dots_collected += 1
+
+        # ~ The code below checks if a star has collided with a player. If so, the star will be killed and the stars_collected variable will
+        #   be incremented
+
         star_Collide = pygame.sprite.groupcollide(players, stars, False, True)
         if star_Collide:
             stars_collected += 1
+
+        # ~ The code below checks if a finish has collided with a player. If so, the game loop will stop running causing the end of the program
 
         finish_Collide = pygame.sprite.groupcollide(players, finishs, False, False)
         if finish_Collide:
             print("you finished with", stars_collected, "stars collected and", dots_collected, "dots collected")
             run = False
 
+        # ~ The code below checks if a player has collided with a wall, if so it will display the landing particle effect and will set the MOVING
+        #   variable to False so that the player stops moving
+
+        player_Collide = pygame.sprite.groupcollide(players, walls, False, False)
         if player_Collide:
 
             start = time.perf_counter()
@@ -376,6 +423,10 @@ def game():
             zooming = False
             zoom.clear()
             boost = False
+
+            # This code ensures that the player stays on the edges of the wall when colliding with it
+            # An area is defined around each wall and if it is within that area it will move the player to the edge of the wall
+            # It does the same for both the Above and below and the left and right directions.
 
             # ~~LEFT OR RIGHT~~#
 
@@ -408,6 +459,8 @@ def game():
             UP = False
             DOWN = False
 
+        # This ensures that the landing particle effect only shows briefly.
+
         if show_particles:
             end = time.perf_counter()
             currentTime = end - start
@@ -416,7 +469,7 @@ def game():
                 show_particles = False
                 particles.clear()
 
-            #  show_particles = False
+
 
         # ~~DRAWING CODE~~#
 
@@ -424,11 +477,15 @@ def game():
 
         colours = [(141, 4, 176), (255, 255, 0), (255, 255, 255)]
 
+        #where all the sprite groups are drawn to the screen
+
         players.draw(screen)
         walls.draw(screen)
         dots.draw(screen)
         stars.draw(screen)
         finishs.draw(screen)
+
+        #the code below is just blitting the HUD to the screen as well as the dots_collected and the stars_collected variables
 
         side_bar = pygame.image.load("side bar.png")
         side_bar = pygame.transform.scale(side_bar, (200, 800))
@@ -458,6 +515,12 @@ def game():
         title = font.render(str(stars_collected), 1, (255, 255, 255))
         screen.blit(title, (60, 150))
 
+        # The code below is what creates the particle effect of the player landing on a wall
+        # It appends randomly sized circles to a particles list
+        # then it moves them randomly along the x and y axis and decreases their size as they move further
+        # it will then individually draw each circle.
+        # If they move past a certain point, they will not be rendered anymore to prevent the list getting too large
+
         if show_particles:
 
             if use == 1:
@@ -479,6 +542,9 @@ def game():
                                    int(particle[2]))
                 if particle[2] <= 0:
                     particles.remove(particle)
+
+        #The same applies to this as the comment above however this applies when the player is moving so the particles
+        #move slightly further and faster but the principles are the same
 
         if zooming:
             if use == 1:
