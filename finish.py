@@ -5,9 +5,6 @@ class Finish(pygame.sprite.Sprite):
   
   def __init__ (self):
     super().__init__()
-    #self.image = pygame.image.load("finish1.png")
-    #self.image = pygame.transform.scale(self.image,(29,21))
-    #self.rect = self.image.get_rect()
     self.images = []
     self.images.append(pygame.image.load("finish1.png"))
     self.images.append(pygame.image.load("finish1.png"))
