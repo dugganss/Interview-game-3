@@ -1,7 +1,5 @@
 import pygame
 import math
-import time
-
 
 class Player(pygame.sprite.Sprite):
   
@@ -14,10 +12,7 @@ class Player(pygame.sprite.Sprite):
     self.images.append(pygame.image.load('art (12).png'))
     self.images.append(pygame.image.load('art.png'))
     self.images.append(pygame.image.load('art (13).png'))
-
-
-
-
+    
     self.index = 0
     self.image = self.images[self.index]
     self.image = pygame.transform.scale(self.image,(30,30))
